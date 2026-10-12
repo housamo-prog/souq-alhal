@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>سوق الهال السوري الإلكتروني</title>
+    <style>
+        :root {
+            --primary: #1e293b;
+            --accent: #10b981;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --text: #0f172a;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --danger: #ef4444;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg);
+            color: var(--text);
+            padding-bottom: 75px;
+        }
+
+        header {
+            background-color: var(--primary);
+            color: white;
+            padding: 15px;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        header p {
+            margin: 3px 0 0;
+            font-size: 0.75rem;
+            opacity: 0.8;
+        }
+
+        .container {
+            padding: 12px;
+            max-width: 600px;
+            margin: auto;
+        }
+
+        /* شريط التنقل السفلي */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--card);
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            border-top: 1px solid var(--border);
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+            z-index: 100;
+        }
+
+        .nav-item {
+            border: none;
+            background: none;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 3px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .nav-item.active {
+            color: var(--accent);
+        }
+
+        .nav-item span {
+            font-size: 1.2rem;
+        }
+
+        /* التصنيفات والتصفية */
+        .categories-label {
+            font-size: 0.75rem;
+            font-weight: bold;
+            color: var(--text-muted);
+            margin: 5px 0 3px;
+        }
+
+        .categories {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding: 2px 0 8px;
+            scrollbar-width: none;
+        }
+
+        .cat-btn {
+            background: var(--card);
+            border: 1px solid var(--border);
+            padding: 5px 12px;
+            border-radius: 16px;
+            font-size: 0.75rem;
+            white-space: nowrap;
+            cursor: pointer;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .cat-btn.active {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+
+        /* البطاقات */
+        .card {
+            background: var(--card);
+            border-radius: 12px;
+            padding: 14px;
+            margin-bottom: 12px;
+            border: 1px solid var(--border);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+        }
+
+        .card-img {
+            width: 100%;
+            height: 160px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            background: #eee;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 6px;
+        }
+
+        .card-title {
+            font-weight: 700;
+            font-size: 0.95rem;
+            margin: 0;
+            color: var(--text);
+        }
+
+        .badge-group {
+            display: flex;
+            gap: 4px;
+        }
+
+        .badge {
+            background: #ecfdf5;
+            color: var(--accent);
+            font-size: 0.68rem;
+            padding: 3px 6px;
+            border-radius: 6px;
+            font-weight: 600;
+        }
+
+        .badge-city {
+            background: #f1f5f9;
+            color: var(--primary);
+        }
+
+        .card-desc {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin: 6px 0 10px;
+            line-height: 1.4;
+        }
+
+        .card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px dashed var(--border);
+            padding-top: 8px;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .btn {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        .btn-danger { background: var(--danger); }
+        .btn-secondary { background: var(--primary); }
+
+        /* النموذج */
+        .form-group {
+            margin-bottom: 12px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: var(--text-muted);
+        }
+
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.85rem;
+            box-sizing: border-box;
+            outline: none;
+            background: var(--bg);
+        }
+
+        /* الإحصائيات */
+        .admin-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .stat-box {
+            background: var(--bg);
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid var(--border);
+        }
+
+        .stat-box h4 { margin: 0; font-size: 1.2rem; color: var(--accent); }
+        .stat-box p { margin: 2px 0 0; font-size: 0.75rem; color: var(--text-muted); }
+
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>سوق الهال السوري الإلكتروني</h1>
+        <p>المنصة التجارية والإنتاجية للسلع والمنتجات المحلية</p>
+    </header>
+
+    <div class="container">
+
+        <!-- 1. الصفحة الرئيسية -->
+        <div id="homePage">
+            <!-- تصفية حسب المحافظة -->
+            <div class="categories-label">تصفية حسب المحافظة:</div>
+            <div class="categories" id="cityCatContainer">
+                <button class="cat-btn active" onclick="filterCity('الكل', this)">جميع المحافظات</button>
+                <button class="cat-btn" onclick="filterCity('حلب', this)">حلب</button>
+                <button class="cat-btn" onclick="filterCity('دمشق', this)">دمشق</button>
+                <button class="cat-btn" onclick="filterCity('ريف دمشق', this)">ريف دمشق</button>
+                <button class="cat-btn" onclick="filterCity('حمص', this)">حمص</button>
+                <button class="cat-btn" onclick="filterCity('حماة', this)">حماة</button>
+                <button class="cat-btn" onclick="filterCity('اللاذقية', this)">اللاذقية</button>
+                <button class="cat-btn" onclick="filterCity('طرطوس', this)">طرطوس</button>
+                <button class="cat-btn" onclick="filterCity('باقي المحافظات', this)">باقي المحافظات</button>
+            </div>
+
+            <!-- تصفية حسب نوع المادة -->
+            <div class="categories-label">تصفية حسب النشاط:</div>
+            <div class="categories" id="typeCatContainer">
+                <button class="cat-btn active" onclick="filterType('الكل', this)">الكل</button>
+                <button class="cat-btn" onclick="filterType('منتجات غذائية وزراعية', this)">غذائية وزراعية</button>
+                <button class="cat-btn" onclick="filterType('مواد أولية وتغليف', this)">تغليف ومواد</button>
+                <button class="cat-btn" onclick="filterType('آلات ومعدات', this)">آلات ومعدات</button>
+            </div>
+
+            <div id="itemsContainer" style="margin-top: 10px;"></div>
+        </div>
+
+        <!-- 2. صفحة إضافة إعلان -->
+        <div id="addPage" class="hidden">
+            <div class="card">
+                <h3 style="margin-top:0; font-size:1rem;">أضف عرضك أو طلبك في سوق الهال</h3>
+                
+                <div class="form-group">
+                    <label>عنوان الإعلان</label>
+                    <input type="text" id="addTitle" placeholder="مثلاً: متوفر زعتر بلدي، مطلوب كرتون تعبئة...">
+                </div>
+                <div class="form-group">
+                    <label>المحافظة</label>
+                    <select id="addCity">
+                        <option value="حلب">حلب</option>
+                        <option value="دمشق">دمشق</option>
+                        <option value="ريف دمشق">ريف دمشق</option>
+                        <option value="حمص">حمص</option>
+                        <option value="حماة">حماة</option>
+                        <option value="اللاذقية">اللاذقية</option>
+                        <option value="طرطوس">طرطوس</option>
+                        <option value="باقي المحافظات">باقي المحافظات</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>القسم</label>
+                    <select id="addCat">
+                        <option value="منتجات غذائية وزراعية">منتجات غذائية وزراعية</option>
+                        <option value="مواد أولية وتغليف">مواد أولية وتغليف</option>
+                        <option value="آلات ومعدات">آلات ومعدات</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>صورة المنتج أو المادة (اختياري)</label>
+                    <input type="file" id="addImage" accept="image/*">
+                </div>
+                <div class="form-group">
+                    <label>رقم الهاتف أو الواتساب</label>
+                    <input type="text" id="addContact" placeholder="09xxxxxxxx">
+                </div>
+                <div class="form-group">
+                    <label>التفاصيل والمواصفات</label>
+                    <textarea id="addDesc" rows="3" placeholder="المقاسات، الكميات المتاحة، الجودة..."></textarea>
+                </div>
+                <button class="btn" onclick="submitItem()">إرسال الإعلان للمراجعة</button>
+            </div>
+        </div>
+
+        <!-- 3. لوحة التحكم -->
+        <div id="adminPage" class="hidden">
+            <div id="adminLoginCard" class="card">
+                <h3 style="margin-top:0;">دخول لوحة التحكم</h3>
+                <div class="form-group">
+                    <input type="password" id="adminPass" placeholder="كلمة المرور">
+                </div>
+                <button class="btn" onclick="loginAdmin()">دخول</button>
+            </div>
+
+            <div id="adminContent" class="hidden">
+                <div class="admin-stats">
+                    <div class="stat-box">
+                        <h4 id="statApproved">0</h4>
+                        <p>إعلانات نشطة</p>
+                    </div>
+                    <div class="stat-box">
+                        <h4 id="statPending">0</h4>
+                        <p>بانتظار الموافقة</p>
+                    </div>
+                </div>
+
+                <!-- تغيير كلمة المرور -->
+                <div class="card" style="background:#f1f5f9;">
+                    <h4 style="margin-top:0; font-size:0.85rem;">🔑 تغيير كلمة سر لوحة التحكم</h4>
+                    <div class="form-group">
+                        <input type="password" id="newAdminPass" placeholder="أدخل كلمة المرور الجديدة">
+                    </div>
+                    <button class="btn btn-secondary" onclick="changeAdminPassword()">حفظ كلمة السر الجديدة</button>
+                </div>
+
+                <h3 style="font-size:0.95rem;">إعلانات بانتظار الموافقة والنشر</h3>
+                <div id="pendingContainer"></div>
+
+                <h3 style="font-size:0.95rem; margin-top:15px;">الإعلانات المنشورة حالياً</h3>
+                <div id="approvedAdminContainer"></div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- شريط التنقل السفلي -->
+    <div class="bottom-nav">
+        <button class="nav-item active" onclick="switchTab('homePage', this)">
+            <span>🏬</span> السوق
+        </button>
+        <button class="nav-item" onclick="switchTab('addPage', this)">
+            <span>➕</span> أضف إعلانك
+        </button>
+        <button class="nav-item" onclick="switchTab('adminPage', this)">
+            <span>⚙️</span> التحكم
+        </button>
+    </div>
+
+    <script>
+        let currentCityFilter = 'الكل';
+        let currentTypeFilter = 'الكل';
+
+        let defaultData = [
+            { id: 1, title: 'عبوات وأكياس تغليف غذائي', cat: 'مواد أولية وتغليف', city: 'حلب', image: '', desc: 'متوفر طباعة وتصنيع أكياس وتغليف بجميع المقاسات.', contact: '0912345678', status: 'approved', time: 'منذ ساعتين' },
+            { id: 2, title: 'زعتر بلدي ممتاز - جملة', cat: 'منتجات غذائية وزراعية', city: 'حلب', image: '', desc: 'جاهز للتعبئة والتوزيع المباشر.', contact: '0987654321', status: 'approved', time: 'منذ يوم' }
+        ];
+
+        function getAdminPassword() {
+            return localStorage.getItem('souqAdminPassword') || 'admin123';
+        }
+
+        function getData() {
+            let local = localStorage.getItem('souqHalData');
+            return local ? JSON.parse(local) : defaultData;
+        }
+
+        function saveData(data) {
+            localStorage.setItem('souqHalData', JSON.stringify(data));
+        }
+
+        function switchTab(pageId, btn) {
+            document.querySelectorAll('.bottom-nav .nav-item').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            document.getElementById('homePage').classList.add('hidden');
+            document.getElementById('addPage').classList.add('hidden');
+            document.getElementById('adminPage').classList.add('hidden');
+
+            document.getElementById(pageId).classList.remove('hidden');
+
+            if(pageId === 'homePage') renderHome();
+            if(pageId === 'adminPage') updateAdminStats();
+        }
+
+        function renderHome() {
+            const container = document.getElementById('itemsContainer');
+            container.innerHTML = '';
+            let data = getData().filter(item => item.status === 'approved');
+
+            // تطبيق فلتر المحافظة والنشاط
+            if (currentCityFilter !== 'الكل') {
+                data = data.filter(i => i.city === currentCityFilter);
+            }
+            if (currentTypeFilter !== 'الكل') {
+                data = data.filter(i => i.cat === currentTypeFilter);
+            }
+
+            if(data.length === 0) {
+                container.innerHTML = '<p style="text-align:center; color:var(--text-muted); font-size:0.85rem; padding: 20px 0;">لا توجد إعلانات مطابقة لهذه الفلاتر حالياً.</p>';
+                return;
+            }
+
+            data.forEach(item => {
+                let imgTag = item.image ? `<img src="${item.image}" class="card-img" alt="صورة الإعلان">` : '';
+                container.innerHTML += `
+                    <div class="card">
+                        ${imgTag}
+                        <div class="card-header">
+                            <h4 class="card-title">${item.title}</h4>
+                            <div class="badge-group">
+                                <span class="badge badge-city">📍 ${item.city || 'حلب'}</span>
+                                <span class="badge">${item.cat}</span>
+                            </div>
+                        </div>
+                        <p class="card-desc">${item.desc}</p>
+                        <div class="card-footer">
+                            <span>🕒 ${item.time}</span>
+                            <button class="btn" style="width:auto; padding:5px 10px;" onclick="alert('رقم التواصل: ${item.contact}')">اتصال / واتساب</button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function filterCity(city, btn) {
+            document.querySelectorAll('#cityCatContainer .cat-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentCityFilter = city;
+            renderHome();
+        }
+
+        function filterType(type, btn) {
+            document.querySelectorAll('#typeCatContainer .cat-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentTypeFilter = type;
+            renderHome();
+        }
+
+        function submitItem() {
+            const title = document.getElementById('addTitle').value.trim();
+            const city = document.getElementById('addCity').value;
+            const cat = document.getElementById('addCat').value;
+            const contact = document.getElementById('addContact').value.trim();
+            const desc = document.getElementById('addDesc').value.trim();
+            const imageInput = document.getElementById('addImage');
+
+            if(!title || !desc || !contact) {
+                alert('الرجاء تعبئة العنوان والتفاصيل ورقم التواصل');
+                return;
+            }
+
+            const reader = new FileReader();
+            if (imageInput.files && imageInput.files[0]) {
+                reader.readAsDataURL(imageInput.files[0]);
+                reader.onload = function (e) {
+                    saveNewRecord(title, city, cat, desc, contact, e.target.result);
+                };
+            } else {
+                saveNewRecord(title, city, cat, desc, contact, '');
+            }
+        }
+
+        function saveNewRecord(title, city, cat, desc, contact, imageUrl) {
+            let data = getData();
+            data.unshift({
+                id: Date.now(),
+                title: title,
+                city: city,
+                cat: cat,
+                desc: desc,
+                contact: contact,
+                image: imageUrl,
+                status: 'pending',
+                time: 'الآن'
+            });
+
+            saveData(data);
+            alert('تم إرسال إعلانك بنجاح لسوق الهال الإلكتروني! سيتم مراجعته ونشره قريباً.');
+            
+            document.getElementById('addTitle').value = '';
+            document.getElementById('addDesc').value = '';
+            document.getElementById('addContact').value = '';
+            document.getElementById('addImage').value = '';
+            switchTab('homePage', document.querySelectorAll('.nav-item')[0]);
+        }
+
+        function loginAdmin() {
+            const pass = document.getElementById('adminPass').value;
+            if(pass === getAdminPassword()) {
+                document.getElementById('adminLoginCard').classList.add('hidden');
+                document.getElementById('adminContent').classList.remove('hidden');
+                renderAdminView();
+            } else {
+                alert('كلمة المرور خاطئة!');
+            }
+        }
+
+        function changeAdminPassword() {
+            const newPass = document.getElementById('newAdminPass').value.trim();
+            if(!newPass) {
+                alert('الرجاء كتابة كلمة سر جديدة');
+                return;
+            }
+            localStorage.setItem('souqAdminPassword', newPass);
+            alert('تم تغيير كلمة سر لوحة التحكم بنجاح!');
+            document.getElementById('newAdminPass').value = '';
+        }
+
+        function renderAdminView() {
+            const data = getData();
+            const pendingContainer = document.getElementById('pendingContainer');
+            const approvedContainer = document.getElementById('approvedAdminContainer');
+
+            pendingContainer.innerHTML = '';
+            approvedContainer.innerHTML = '';
+
+            const pending = data.filter(i => i.status === 'pending');
+            const approved = data.filter(i => i.status === 'approved');
+
+            document.getElementById('statApproved').innerText = approved.length;
+            document.getElementById('statPending').innerText = pending.length;
+
+            if(pending.length === 0) pendingContainer.innerHTML = '<p style="font-size:0.8rem; color:var(--text-muted);">لا توجد طلبات معلقة.</p>';
+            
+            pending.forEach(item => {
+                let imgTag = item.image ? `<img src="${item.image}" style="width:100%; height:100px; object-fit:cover; border-radius:6px; margin-bottom:5px;">` : '';
+                pendingContainer.innerHTML += `
+                    <div class="card" style="border-right: 4px solid #f59e0b;">
+                        ${imgTag}
+                        <h4>${item.title} [📍 ${item.city || 'حلب'}]</h4>
+                        <p class="card-desc">${item.desc}<br><strong>للتواصل:</strong> ${item.contact}</p>
+                        <div style="display:flex; gap:8px;">
+                            <button class="btn" onclick="changeStatus(${item.id}, 'approved')">موافقة ونشر</button>
+                            <button class="btn btn-danger" onclick="deleteItem(${item.id})">رفض وحذف</button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            approved.forEach(item => {
+                approvedContainer.innerHTML += `
+                    <div class="card">
+                        <h4>${item.title} [📍 ${item.city || 'حلب'}]</h4>
+                        <p class="card-desc">${item.desc}</p>
+                        <button class="btn btn-danger" style="padding:4px 8px; font-size:0.75rem;" onclick="deleteItem(${item.id})">حذف الإعلان</button>
+                    </div>
+                `;
+            });
+        }
+
+        function changeStatus(id, newStatus) {
+            let data = getData();
+            let item = data.find(i => i.id === id);
+            if(item) {
+                item.status = newStatus;
+                saveData(data);
+                renderAdminView();
+            }
+        }
+
+        function deleteItem(id) {
+            if(confirm('هل أنت متأكد من الحذف؟')) {
+                let data = getData().filter(i => i.id !== id);
+                saveData(data);
+                renderAdminView();
+            }
+        }
+
+        function updateAdminStats() {
+            if(!document.getElementById('adminContent').classList.contains('hidden')) {
+                renderAdminView();
+            }
+        }
+
+        window.onload = function() {
+            renderHome();
+        };
+    </script>
+</body>
+</html>
