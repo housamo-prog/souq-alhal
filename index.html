@@ -21,6 +21,7 @@
             --text-muted: #64748b;
             --border: #e2e8f0;
             --danger: #ef4444;
+            --warning: #f59e0b;
         }
 
         body {
@@ -155,7 +156,7 @@
         .card-img {
             width: 100%;
             max-height: 350px;
-            object-fit: contain; /* إظهار الصورة كاملة بدون قص */
+            object-fit: contain;
             display: block;
         }
 
@@ -207,6 +208,13 @@
             padding-top: 8px;
             font-size: 0.75rem;
             color: var(--text-muted);
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .action-btns {
+            display: flex;
+            gap: 6px;
         }
 
         .btn {
@@ -225,7 +233,14 @@
             box-sizing: border-box;
         }
 
+        .btn-sm {
+            padding: 5px 10px;
+            font-size: 0.75rem;
+            width: auto;
+        }
+
         .btn-danger { background: var(--danger); }
+        .btn-warning { background: var(--warning); color: white; }
         .btn-secondary { background: var(--primary); }
 
         /* النموذج */
@@ -250,6 +265,29 @@
             box-sizing: border-box;
             outline: none;
             background: var(--bg);
+        }
+
+        /* نافذة التعديل Pop-up Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 15px;
+        }
+
+        .modal-card {
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            width: 100%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
         }
 
         /* الإحصائيات */
@@ -346,8 +384,12 @@
                     <input type="file" id="addImage" accept="image/*">
                 </div>
                 <div class="form-group">
-                    <label>رقم الهاتف أو الواتساب (مع الرمز إن وجد)</label>
+                    <label>رقم الهاتف أو الواتساب</label>
                     <input type="text" id="addContact" placeholder="09xxxxxxxx">
+                </div>
+                <div class="form-group">
+                    <label>رمز سرّي خاص بك (لتعديل أو حذف إعلانك لاحقاً)</label>
+                    <input type="password" id="addPin" placeholder="اختر رمزاً من 4 أرقام (مثلاً: 1234)">
                 </div>
                 <div class="form-group">
                     <label>التفاصيل والمواصفات</label>
@@ -391,11 +433,56 @@
                 <h3 style="font-size:0.95rem;">إعلانات بانتظار الموافقة والنشر</h3>
                 <div id="pendingContainer"></div>
 
-                <h3 style="font-size:0.95rem; margin-top:15px;">الإعلانات المنشورة حالياً</h3>
+                <h3 style="font-size:0.95rem; margin-top:15px;">الإعلانات المنشورة حالياً (إدارة وتعديل)</h3>
                 <div id="approvedAdminContainer"></div>
             </div>
         </div>
 
+    </div>
+
+    <!-- نافذة تعديل المنشور Modal -->
+    <div id="editModal" class="modal-overlay hidden">
+        <div class="modal-card">
+            <h3 style="margin-top:0; font-size:1rem;">تعديل المنشور</h3>
+            <input type="hidden" id="editItemId">
+            <div class="form-group">
+                <label>العنوان</label>
+                <input type="text" id="editTitle">
+            </div>
+            <div class="form-group">
+                <label>المحافظة</label>
+                <select id="editCity">
+                    <option value="حلب">حلب</option>
+                    <option value="دمشق">دمشق</option>
+                    <option value="ريف دمشق">ريف دمشق</option>
+                    <option value="حمص">حمص</option>
+                    <option value="حماة">حماة</option>
+                    <option value="اللاذقية">اللاذقية</option>
+                    <option value="طرطوس">طرطوس</option>
+                    <option value="باقي المحافظات">باقي المحافظات</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>القسم</label>
+                <select id="editCat">
+                    <option value="منتجات غذائية وزراعية">منتجات غذائية وزراعية</option>
+                    <option value="مواد أولية وتغليف">مواد أولية وتغليف</option>
+                    <option value="آلات ومعدات">آلات ومعدات</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>رقم التواصل</label>
+                <input type="text" id="editContact">
+            </div>
+            <div class="form-group">
+                <label>التفاصيل</label>
+                <textarea id="editDesc" rows="3"></textarea>
+            </div>
+            <div style="display:flex; gap:8px;">
+                <button class="btn" onclick="saveEditedItem()">حفظ التعديلات</button>
+                <button class="btn btn-danger" onclick="closeEditModal()">إلغاء</button>
+            </div>
+        </div>
     </div>
 
     <!-- شريط التنقل السفلي -->
@@ -414,10 +501,11 @@
     <script>
         let currentCityFilter = 'الكل';
         let currentTypeFilter = 'الكل';
+        let isAdminLoggedIn = false;
 
         let defaultData = [
-            { id: 1, title: 'عبوات وأكياس تغليف غذائي', cat: 'مواد أولية وتغليف', city: 'حلب', image: '', desc: 'متوفر طباعة وتصنيع أكياس وتغليف بجميع المقاسات.', contact: '0912345678', status: 'approved', time: 'منذ ساعتين' },
-            { id: 2, title: 'زعتر بلدي ممتاز - جملة', cat: 'منتجات غذائية وزراعية', city: 'حلب', image: '', desc: 'جاهز للتعبئة والتوزيع المباشر.', contact: '0987654321', status: 'approved', time: 'منذ يوم' }
+            { id: 1, title: 'عبوات وأكياس تغليف غذائي', cat: 'مواد أولية وتغليف', city: 'حلب', image: '', desc: 'متوفر طباعة وتصنيع أكياس وتغليف بجميع المقاسات.', contact: '0912345678', pin: '1234', status: 'approved', time: 'منذ ساعتين' },
+            { id: 2, title: 'زعتر بلدي ممتاز - جملة', cat: 'منتجات غذائية وزراعية', city: 'حلب', image: '', desc: 'جاهز للتعبئة والتوزيع المباشر.', contact: '0987654321', pin: '1234', status: 'approved', time: 'منذ يوم' }
         ];
 
         function getAdminPassword() {
@@ -447,7 +535,6 @@
             if(pageId === 'adminPage') updateAdminStats();
         }
 
-        // تنسيق الرقم والمحادث المباشرة للواتساب
         function formatWhatsappUrl(phone, title) {
             let cleanPhone = phone.replace(/[^0-9]/g, '');
             if (cleanPhone.startsWith('09')) {
@@ -491,7 +578,11 @@
                         <p class="card-desc">${item.desc}</p>
                         <div class="card-footer">
                             <span>🕒 ${item.time}</span>
-                            <a href="${waUrl}" target="_blank" class="btn" style="width:auto; padding:6px 12px;">📱 مراسلة عبر الواتساب</a>
+                            <div class="action-btns">
+                                <a href="${waUrl}" target="_blank" class="btn btn-sm">📱 واتساب</a>
+                                <button class="btn btn-sm btn-warning" onclick="userRequestEdit(${item.id})">✏️ تعديل</button>
+                                <button class="btn btn-sm btn-danger" onclick="userRequestDelete(${item.id})">🗑️ حذف</button>
+                            </div>
                         </div>
                     </div>
                 `;
@@ -517,10 +608,12 @@
             const city = document.getElementById('addCity').value;
             const cat = document.getElementById('addCat').value;
             const contact = document.getElementById('addContact').value.trim();
+            const pin = document.getElementById('addPin').value.trim();
             const desc = document.getElementById('addDesc').value.trim();
             const imageInput = document.getElementById('addImage');
 
             if(!title || !desc || !contact) {
+                alert('الرجاء تعبئة العنوان والتفاصيل ورقم التواصل');
                 return;
             }
 
@@ -528,14 +621,14 @@
             if (imageInput.files && imageInput.files[0]) {
                 reader.readAsDataURL(imageInput.files[0]);
                 reader.onload = function (e) {
-                    saveNewRecord(title, city, cat, desc, contact, e.target.result);
+                    saveNewRecord(title, city, cat, desc, contact, pin, e.target.result);
                 };
             } else {
-                saveNewRecord(title, city, cat, desc, contact, '');
+                saveNewRecord(title, city, cat, desc, contact, pin, '');
             }
         }
 
-        function saveNewRecord(title, city, cat, desc, contact, imageUrl) {
+        function saveNewRecord(title, city, cat, desc, contact, pin, imageUrl) {
             let data = getData();
             data.unshift({
                 id: Date.now(),
@@ -544,26 +637,97 @@
                 cat: cat,
                 desc: desc,
                 contact: contact,
+                pin: pin || '0000',
                 image: imageUrl,
                 status: 'pending',
                 time: 'الآن'
             });
 
             saveData(data);
+            alert('تم إرسال إعلانك لسوق الهال بنجاح! سيتم مراجعته ونشره قريباً.');
             
             document.getElementById('addTitle').value = '';
             document.getElementById('addDesc').value = '';
             document.getElementById('addContact').value = '';
+            document.getElementById('addPin').value = '';
             document.getElementById('addImage').value = '';
             switchTab('homePage', document.querySelectorAll('.nav-item')[0]);
+        }
+
+        // التعديل والحذف بـ الرمز السرّي للمستخدم
+        function userRequestEdit(id) {
+            let data = getData();
+            let item = data.find(i => i.id === id);
+            if(!item) return;
+
+            let inputPin = prompt('أدخل الرمز السرّي الخاص بك للتعديل على هذا الإعلان:');
+            if(inputPin === item.pin || isAdminLoggedIn) {
+                openEditModal(item);
+            } else if(inputPin !== null) {
+                alert('الرمز السرّي غير صحيح!');
+            }
+        }
+
+        function userRequestDelete(id) {
+            let data = getData();
+            let item = data.find(i => i.id === id);
+            if(!item) return;
+
+            let inputPin = prompt('أدخل الرمز السرّي الخاص بك لحذف هذا الإعلان:');
+            if(inputPin === item.pin || isAdminLoggedIn) {
+                if(confirm('هل أنت متأكد من رغبتك في حذف هذا المنشور؟')) {
+                    deleteItem(id);
+                    renderHome();
+                }
+            } else if(inputPin !== null) {
+                alert('الرمز السرّي غير صحيح!');
+            }
+        }
+
+        function openEditModal(item) {
+            document.getElementById('editItemId').value = item.id;
+            document.getElementById('editTitle').value = item.title;
+            document.getElementById('editCity').value = item.city || 'حلب';
+            document.getElementById('editCat').value = item.cat;
+            document.getElementById('editContact').value = item.contact;
+            document.getElementById('editDesc').value = item.desc;
+
+            document.getElementById('editModal').classList.remove('hidden');
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').classList.add('hidden');
+        }
+
+        function saveEditedItem() {
+            let id = parseInt(document.getElementById('editItemId').value);
+            let data = getData();
+            let item = data.find(i => i.id === id);
+
+            if(item) {
+                item.title = document.getElementById('editTitle').value.trim();
+                item.city = document.getElementById('editCity').value;
+                item.cat = document.getElementById('editCat').value;
+                item.contact = document.getElementById('editContact').value.trim();
+                item.desc = document.getElementById('editDesc').value.trim();
+
+                saveData(data);
+                closeEditModal();
+                alert('تم حفظ التعديلات بنجاح!');
+                renderHome();
+                if(isAdminLoggedIn) renderAdminView();
+            }
         }
 
         function loginAdmin() {
             const pass = document.getElementById('adminPass').value;
             if(pass === getAdminPassword()) {
+                isAdminLoggedIn = true;
                 document.getElementById('adminLoginCard').classList.add('hidden');
                 document.getElementById('adminContent').classList.remove('hidden');
                 renderAdminView();
+            } else {
+                alert('كلمة المرور خاطئة!');
             }
         }
 
@@ -571,6 +735,7 @@
             const newPass = document.getElementById('newAdminPass').value.trim();
             if(newPass) {
                 localStorage.setItem('souqAdminPassword', newPass);
+                alert('تم تحديث كلمة سر الآدمن بنجاح!');
                 document.getElementById('newAdminPass').value = '';
             }
         }
@@ -598,9 +763,10 @@
                         ${imgTag}
                         <h4>${item.title} [📍 ${item.city || 'حلب'}]</h4>
                         <p class="card-desc">${item.desc}<br><strong>للتواصل:</strong> ${item.contact}</p>
-                        <div style="display:flex; gap:8px;">
-                            <button class="btn" onclick="changeStatus(${item.id}, 'approved')">موافقة ونشر</button>
-                            <button class="btn btn-danger" onclick="deleteItem(${item.id})">رفض وحذف</button>
+                        <div style="display:flex; gap:6px;">
+                            <button class="btn btn-sm" onclick="changeStatus(${item.id}, 'approved')">موافقة ونشر</button>
+                            <button class="btn btn-sm btn-warning" onclick="openEditModalById(${item.id})">تعديل</button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteItem(${item.id})">حذف</button>
                         </div>
                     </div>
                 `;
@@ -611,10 +777,19 @@
                     <div class="card">
                         <h4>${item.title} [📍 ${item.city || 'حلب'}]</h4>
                         <p class="card-desc">${item.desc}</p>
-                        <button class="btn btn-danger" style="padding:4px 8px; font-size:0.75rem;" onclick="deleteItem(${item.id})">حذف الإعلان</button>
+                        <div style="display:flex; gap:6px;">
+                            <button class="btn btn-sm btn-warning" onclick="openEditModalById(${item.id})">✏️ تعديل من الآدمن</button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteItem(${item.id})">🗑️ حذف</button>
+                        </div>
                     </div>
                 `;
             });
+        }
+
+        function openEditModalById(id) {
+            let data = getData();
+            let item = data.find(i => i.id === id);
+            if(item) openEditModal(item);
         }
 
         function changeStatus(id, newStatus) {
@@ -631,6 +806,7 @@
             let data = getData().filter(i => i.id !== id);
             saveData(data);
             renderAdminView();
+            renderHome();
         }
 
         function updateAdminStats() {
