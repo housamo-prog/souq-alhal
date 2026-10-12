@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>سوق الهال السوري الإلكتروني</title>
     
-    <!-- إعدادات تطبيق الويب المتقدم (PWA) لمتجر جوجل بلاي -->
+    <!-- إعدادات تطبيق الويب المتقدم (PWA) -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#1e293b">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -131,7 +131,7 @@
             border-color: var(--accent);
         }
 
-        /* البطاقات */
+        /* البطاقات وتنسيق عرض الصورة بالكامل */
         .card {
             background: var(--card);
             border-radius: 12px;
@@ -141,13 +141,22 @@
             box-shadow: 0 1px 3px rgba(0,0,0,0.02);
         }
 
+        .card-img-wrapper {
+            width: 100%;
+            background-color: #000;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
         .card-img {
             width: 100%;
-            height: 160px;
-            object-fit: cover;
-            border-radius: 8px;
-            margin-bottom: 8px;
-            background: #eee;
+            max-height: 350px;
+            object-fit: contain; /* إظهار الصورة كاملة بدون قص */
+            display: block;
         }
 
         .card-header {
@@ -210,6 +219,10 @@
             font-weight: 600;
             cursor: pointer;
             width: 100%;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+            box-sizing: border-box;
         }
 
         .btn-danger { background: var(--danger); }
@@ -333,7 +346,7 @@
                     <input type="file" id="addImage" accept="image/*">
                 </div>
                 <div class="form-group">
-                    <label>رقم الهاتف أو الواتساب</label>
+                    <label>رقم الهاتف أو الواتساب (مع الرمز إن وجد)</label>
                     <input type="text" id="addContact" placeholder="09xxxxxxxx">
                 </div>
                 <div class="form-group">
@@ -434,6 +447,16 @@
             if(pageId === 'adminPage') updateAdminStats();
         }
 
+        // تنسيق الرقم والمحادث المباشرة للواتساب
+        function formatWhatsappUrl(phone, title) {
+            let cleanPhone = phone.replace(/[^0-9]/g, '');
+            if (cleanPhone.startsWith('09')) {
+                cleanPhone = '963' + cleanPhone.substring(1);
+            }
+            const message = encodeURIComponent(`مرحباً، أستفسر بخصوص إعلانكم في سوق الهال السوري: ${title}`);
+            return `https://wa.me/${cleanPhone}?text=${message}`;
+        }
+
         function renderHome() {
             const container = document.getElementById('itemsContainer');
             container.innerHTML = '';
@@ -452,7 +475,9 @@
             }
 
             data.forEach(item => {
-                let imgTag = item.image ? `<img src="${item.image}" class="card-img" alt="صورة الإعلان">` : '';
+                let imgTag = item.image ? `<div class="card-img-wrapper"><img src="${item.image}" class="card-img" alt="صورة الإعلان"></div>` : '';
+                let waUrl = formatWhatsappUrl(item.contact, item.title);
+
                 container.innerHTML += `
                     <div class="card">
                         ${imgTag}
@@ -466,7 +491,7 @@
                         <p class="card-desc">${item.desc}</p>
                         <div class="card-footer">
                             <span>🕒 ${item.time}</span>
-                            <button class="btn" style="width:auto; padding:5px 10px;" onclick="alert('رقم التواصل: ${item.contact}')">اتصال / واتساب</button>
+                            <a href="${waUrl}" target="_blank" class="btn" style="width:auto; padding:6px 12px;">📱 مراسلة عبر الواتساب</a>
                         </div>
                     </div>
                 `;
@@ -496,7 +521,6 @@
             const imageInput = document.getElementById('addImage');
 
             if(!title || !desc || !contact) {
-                alert('الرجاء تعبئة العنوان والتفاصيل ورقم التواصل');
                 return;
             }
 
@@ -526,7 +550,6 @@
             });
 
             saveData(data);
-            alert('تم إرسال إعلانك بنجاح لسوق الهال الإلكتروني! سيتم مراجعته ونشره قريباً.');
             
             document.getElementById('addTitle').value = '';
             document.getElementById('addDesc').value = '';
@@ -541,20 +564,15 @@
                 document.getElementById('adminLoginCard').classList.add('hidden');
                 document.getElementById('adminContent').classList.remove('hidden');
                 renderAdminView();
-            } else {
-                alert('كلمة المرور خاطئة!');
             }
         }
 
         function changeAdminPassword() {
             const newPass = document.getElementById('newAdminPass').value.trim();
-            if(!newPass) {
-                alert('الرجاء كتابة كلمة سر جديدة');
-                return;
+            if(newPass) {
+                localStorage.setItem('souqAdminPassword', newPass);
+                document.getElementById('newAdminPass').value = '';
             }
-            localStorage.setItem('souqAdminPassword', newPass);
-            alert('تم تغيير كلمة سر لوحة التحكم بنجاح!');
-            document.getElementById('newAdminPass').value = '';
         }
 
         function renderAdminView() {
@@ -574,7 +592,7 @@
             if(pending.length === 0) pendingContainer.innerHTML = '<p style="font-size:0.8rem; color:var(--text-muted);">لا توجد طلبات معلقة.</p>';
             
             pending.forEach(item => {
-                let imgTag = item.image ? `<img src="${item.image}" style="width:100%; height:100px; object-fit:cover; border-radius:6px; margin-bottom:5px;">` : '';
+                let imgTag = item.image ? `<div class="card-img-wrapper" style="max-height:150px;"><img src="${item.image}" class="card-img"></div>` : '';
                 pendingContainer.innerHTML += `
                     <div class="card" style="border-right: 4px solid #f59e0b;">
                         ${imgTag}
@@ -610,11 +628,9 @@
         }
 
         function deleteItem(id) {
-            if(confirm('هل أنت متأكد من الحذف؟')) {
-                let data = getData().filter(i => i.id !== id);
-                saveData(data);
-                renderAdminView();
-            }
+            let data = getData().filter(i => i.id !== id);
+            saveData(data);
+            renderAdminView();
         }
 
         function updateAdminStats() {
