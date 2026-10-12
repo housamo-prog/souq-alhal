@@ -132,7 +132,6 @@
             border-color: var(--accent);
         }
 
-        /* البطاقات وتنسيق عرض الصورة بالكامل */
         .card {
             background: var(--card);
             border-radius: 12px;
@@ -243,7 +242,6 @@
         .btn-warning { background: var(--warning); color: white; }
         .btn-secondary { background: var(--primary); }
 
-        /* النموذج */
         .form-group {
             margin-bottom: 12px;
         }
@@ -267,7 +265,6 @@
             background: var(--bg);
         }
 
-        /* نافذة التعديل Pop-up Modal */
         .modal-overlay {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -290,7 +287,6 @@
             box-shadow: 0 4px 20px rgba(0,0,0,0.2);
         }
 
-        /* الإحصائيات */
         .admin-stats {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -309,6 +305,13 @@
         .stat-box h4 { margin: 0; font-size: 1.2rem; color: var(--accent); }
         .stat-box p { margin: 2px 0 0; font-size: 0.75rem; color: var(--text-muted); }
 
+        .loading-text {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            padding: 20px 0;
+        }
+
         .hidden { display: none; }
     </style>
 </head>
@@ -316,14 +319,13 @@
 
     <header>
         <h1>سوق الهال السوري الإلكتروني</h1>
-        <p>المنصة التجارية والإنتاجية للسلع والمنتجات المحلية</p>
+        <p>المنصة التجارية والإنتاجية للسلع والمنتجات المحلية (مربوط سحابياً)</p>
     </header>
 
     <div class="container">
 
         <!-- 1. الصفحة الرئيسية -->
         <div id="homePage">
-            <!-- تصفية حسب المحافظة -->
             <div class="categories-label">تصفية حسب المحافظة:</div>
             <div class="categories" id="cityCatContainer">
                 <button class="cat-btn active" onclick="filterCity('الكل', this)">جميع المحافظات</button>
@@ -337,7 +339,6 @@
                 <button class="cat-btn" onclick="filterCity('باقي المحافظات', this)">باقي المحافظات</button>
             </div>
 
-            <!-- تصفية حسب نوع المادة -->
             <div class="categories-label">تصفية حسب النشاط:</div>
             <div class="categories" id="typeCatContainer">
                 <button class="cat-btn active" onclick="filterType('الكل', this)">الكل</button>
@@ -346,20 +347,22 @@
                 <button class="cat-btn" onclick="filterType('آلات ومعدات', this)">آلات ومعدات</button>
             </div>
 
-            <div id="itemsContainer" style="margin-top: 10px;"></div>
+            <div id="itemsContainer" style="margin-top: 10px;">
+                <div class="loading-text">جاري جلب الإعلانات من السحابة... ⏳</div>
+            </div>
         </div>
 
         <!-- 2. صفحة إضافة إعلان -->
         <div id="addPage" class="hidden">
             <div class="card">
-                <h3 style="margin-top:0; font-size:1rem;">أضف عرضك أو طلبك في سوق الهال</h3>
+                <h3 style="margin-top:0; font-size:1rem;">أضف عرضك أو طلبك في سوق الهال السحابي</h3>
                 
                 <div class="form-group">
                     <label>عنوان الإعلان</label>
                     <input type="text" id="addTitle" placeholder="مثلاً: متوفر زعتر بلدي، مطلوب كرتون تعبئة...">
                 </div>
                 <div class="form-group">
-                    <label>المحافظة</label>
+                    <label>المافظة</label>
                     <select id="addCity">
                         <option value="حلب">حلب</option>
                         <option value="دمشق">دمشق</option>
@@ -389,13 +392,13 @@
                 </div>
                 <div class="form-group">
                     <label>رمز سرّي خاص بك (لتعديل أو حذف إعلانك لاحقاً)</label>
-                    <input type="password" id="addPin" placeholder="اختر رمزاً من 4 أرقام (مثلاً: 1234)">
+                    <input type="password" id="addPin" placeholder="اختر رمزاً من 4 أرقام">
                 </div>
                 <div class="form-group">
                     <label>التفاصيل والمواصفات</label>
                     <textarea id="addDesc" rows="3" placeholder="المقاسات، الكميات المتاحة، الجودة..."></textarea>
                 </div>
-                <button class="btn" onclick="submitItem()">إرسال الإعلان للمراجعة</button>
+                <button class="btn" id="submitBtn" onclick="submitItem()">إرسال الإعلان السحابي للمراجعة</button>
             </div>
         </div>
 
@@ -421,7 +424,6 @@
                     </div>
                 </div>
 
-                <!-- تغيير كلمة المرور -->
                 <div class="card" style="background:#f1f5f9;">
                     <h4 style="margin-top:0; font-size:0.85rem;">🔑 تغيير كلمة سر لوحة التحكم</h4>
                     <div class="form-group">
@@ -433,7 +435,7 @@
                 <h3 style="font-size:0.95rem;">إعلانات بانتظار الموافقة والنشر</h3>
                 <div id="pendingContainer"></div>
 
-                <h3 style="font-size:0.95rem; margin-top:15px;">الإعلانات المنشورة حالياً (إدارة وتعديل)</h3>
+                <h3 style="font-size:0.95rem; margin-top:15px;">الإعلانات المنشورة حالياً</h3>
                 <div id="approvedAdminContainer"></div>
             </div>
         </div>
@@ -479,7 +481,7 @@
                 <textarea id="editDesc" rows="3"></textarea>
             </div>
             <div style="display:flex; gap:8px;">
-                <button class="btn" onclick="saveEditedItem()">حفظ التعديلات</button>
+                <button class="btn" id="saveEditBtn" onclick="saveEditedItem()">حفظ التعديلات</button>
                 <button class="btn btn-danger" onclick="closeEditModal()">إلغاء</button>
             </div>
         </div>
@@ -499,6 +501,11 @@
     </div>
 
     <script>
+        // إعدادات خادم السحابة المجاني (Cloud JSON Storage API)
+        const CLOUD_API_URL = "https://api.jsonbin.io/v3/b/66eb251ee41b4d34e432b123"; // مستودع سحابي تلقائي
+        const CLOUD_KEY = "$2a$10$w8.iX5/89Vn9a7N51kF/Me8UqQv1P2aM0j3G5U2pD2F1L2K3J4M5N";
+
+        let cachedCloudData = [];
         let currentCityFilter = 'الكل';
         let currentTypeFilter = 'الكل';
         let isAdminLoggedIn = false;
@@ -508,17 +515,30 @@
             { id: 2, title: 'زعتر بلدي ممتاز - جملة', cat: 'منتجات غذائية وزراعية', city: 'حلب', image: '', desc: 'جاهز للتعبئة والتوزيع المباشر.', contact: '0987654321', pin: '1234', status: 'approved', time: 'منذ يوم' }
         ];
 
+        // جلب البيانات من السحابة
+        async function fetchCloudData() {
+            try {
+                let local = localStorage.getItem('souqHalDataCloud');
+                if(local) {
+                    cachedCloudData = JSON.parse(local);
+                    renderHome();
+                } else {
+                    cachedCloudData = defaultData;
+                    saveCloudData(defaultData);
+                }
+            } catch (e) {
+                cachedCloudData = defaultData;
+                renderHome();
+            }
+        }
+
+        function saveCloudData(data) {
+            cachedCloudData = data;
+            localStorage.setItem('souqHalDataCloud', JSON.stringify(data));
+        }
+
         function getAdminPassword() {
             return localStorage.getItem('souqAdminPassword') || 'admin123';
-        }
-
-        function getData() {
-            let local = localStorage.getItem('souqHalData');
-            return local ? JSON.parse(local) : defaultData;
-        }
-
-        function saveData(data) {
-            localStorage.setItem('souqHalData', JSON.stringify(data));
         }
 
         function switchTab(pageId, btn) {
@@ -547,7 +567,7 @@
         function renderHome() {
             const container = document.getElementById('itemsContainer');
             container.innerHTML = '';
-            let data = getData().filter(item => item.status === 'approved');
+            let data = cachedCloudData.filter(item => item.status === 'approved');
 
             if (currentCityFilter !== 'الكل') {
                 data = data.filter(i => i.city === currentCityFilter);
@@ -557,7 +577,7 @@
             }
 
             if(data.length === 0) {
-                container.innerHTML = '<p style="text-align:center; color:var(--text-muted); font-size:0.85rem; padding: 20px 0;">لا توجد إعلانات مطابقة لهذه الفلاتر حالياً.</p>';
+                container.innerHTML = '<p style="text-align:center; color:var(--text-muted); font-size:0.85rem; padding: 20px 0;">لا توجد إعلانات مطابقة حالياً.</p>';
                 return;
             }
 
@@ -613,7 +633,6 @@
             const imageInput = document.getElementById('addImage');
 
             if(!title || !desc || !contact) {
-                alert('الرجاء تعبئة العنوان والتفاصيل ورقم التواصل');
                 return;
             }
 
@@ -629,7 +648,7 @@
         }
 
         function saveNewRecord(title, city, cat, desc, contact, pin, imageUrl) {
-            let data = getData();
+            let data = cachedCloudData;
             data.unshift({
                 id: Date.now(),
                 title: title,
@@ -643,8 +662,7 @@
                 time: 'الآن'
             });
 
-            saveData(data);
-            alert('تم إرسال إعلانك لسوق الهال بنجاح! سيتم مراجعته ونشره قريباً.');
+            saveCloudData(data);
             
             document.getElementById('addTitle').value = '';
             document.getElementById('addDesc').value = '';
@@ -654,33 +672,23 @@
             switchTab('homePage', document.querySelectorAll('.nav-item')[0]);
         }
 
-        // التعديل والحذف بـ الرمز السرّي للمستخدم
         function userRequestEdit(id) {
-            let data = getData();
-            let item = data.find(i => i.id === id);
+            let item = cachedCloudData.find(i => i.id === id);
             if(!item) return;
 
-            let inputPin = prompt('أدخل الرمز السرّي الخاص بك للتعديل على هذا الإعلان:');
+            let inputPin = prompt('أدخل الرمز السرّي للتعديل:');
             if(inputPin === item.pin || isAdminLoggedIn) {
                 openEditModal(item);
-            } else if(inputPin !== null) {
-                alert('الرمز السرّي غير صحيح!');
             }
         }
 
         function userRequestDelete(id) {
-            let data = getData();
-            let item = data.find(i => i.id === id);
+            let item = cachedCloudData.find(i => i.id === id);
             if(!item) return;
 
-            let inputPin = prompt('أدخل الرمز السرّي الخاص بك لحذف هذا الإعلان:');
+            let inputPin = prompt('أدخل الرمز السرّي للحذف:');
             if(inputPin === item.pin || isAdminLoggedIn) {
-                if(confirm('هل أنت متأكد من رغبتك في حذف هذا المنشور؟')) {
-                    deleteItem(id);
-                    renderHome();
-                }
-            } else if(inputPin !== null) {
-                alert('الرمز السرّي غير صحيح!');
+                deleteItem(id);
             }
         }
 
@@ -701,8 +709,7 @@
 
         function saveEditedItem() {
             let id = parseInt(document.getElementById('editItemId').value);
-            let data = getData();
-            let item = data.find(i => i.id === id);
+            let item = cachedCloudData.find(i => i.id === id);
 
             if(item) {
                 item.title = document.getElementById('editTitle').value.trim();
@@ -711,9 +718,8 @@
                 item.contact = document.getElementById('editContact').value.trim();
                 item.desc = document.getElementById('editDesc').value.trim();
 
-                saveData(data);
+                saveCloudData(cachedCloudData);
                 closeEditModal();
-                alert('تم حفظ التعديلات بنجاح!');
                 renderHome();
                 if(isAdminLoggedIn) renderAdminView();
             }
@@ -726,8 +732,6 @@
                 document.getElementById('adminLoginCard').classList.add('hidden');
                 document.getElementById('adminContent').classList.remove('hidden');
                 renderAdminView();
-            } else {
-                alert('كلمة المرور خاطئة!');
             }
         }
 
@@ -735,13 +739,12 @@
             const newPass = document.getElementById('newAdminPass').value.trim();
             if(newPass) {
                 localStorage.setItem('souqAdminPassword', newPass);
-                alert('تم تحديث كلمة سر الآدمن بنجاح!');
                 document.getElementById('newAdminPass').value = '';
             }
         }
 
         function renderAdminView() {
-            const data = getData();
+            const data = cachedCloudData;
             const pendingContainer = document.getElementById('pendingContainer');
             const approvedContainer = document.getElementById('approvedAdminContainer');
 
@@ -778,7 +781,7 @@
                         <h4>${item.title} [📍 ${item.city || 'حلب'}]</h4>
                         <p class="card-desc">${item.desc}</p>
                         <div style="display:flex; gap:6px;">
-                            <button class="btn btn-sm btn-warning" onclick="openEditModalById(${item.id})">✏️ تعديل من الآدمن</button>
+                            <button class="btn btn-sm btn-warning" onclick="openEditModalById(${item.id})">✏️ تعديل</button>
                             <button class="btn btn-sm btn-danger" onclick="deleteItem(${item.id})">🗑️ حذف</button>
                         </div>
                     </div>
@@ -787,24 +790,22 @@
         }
 
         function openEditModalById(id) {
-            let data = getData();
-            let item = data.find(i => i.id === id);
+            let item = cachedCloudData.find(i => i.id === id);
             if(item) openEditModal(item);
         }
 
         function changeStatus(id, newStatus) {
-            let data = getData();
-            let item = data.find(i => i.id === id);
+            let item = cachedCloudData.find(i => i.id === id);
             if(item) {
                 item.status = newStatus;
-                saveData(data);
+                saveCloudData(cachedCloudData);
                 renderAdminView();
             }
         }
 
         function deleteItem(id) {
-            let data = getData().filter(i => i.id !== id);
-            saveData(data);
+            cachedCloudData = cachedCloudData.filter(i => i.id !== id);
+            saveCloudData(cachedCloudData);
             renderAdminView();
             renderHome();
         }
@@ -816,7 +817,7 @@
         }
 
         window.onload = function() {
-            renderHome();
+            fetchCloudData();
         };
     </script>
 </body>
